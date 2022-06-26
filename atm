@@ -1,970 +1,714 @@
-#define  _CRT_SECURE_NO_WARNINGS
-#pragma warning(disable:4700)
-#undef UNICODE
-#undef _UNICODE
-#include"easyx.h"
-#include"stdio.h"
-#include"stdlib.h"
-#include"string.h"
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<time.h>
 #include<conio.h>
-/////////////*---------------------*/
-//绘制主题背景
-void Draw_background(int x, int y)
+
+int A;//语言选择变量 
+
+int language()
 {
-	float H = 190;		// 色相
-	float S = 5;		// 饱和度
-	float L = 0.8f;		// 亮度
-	for (int y = 0; y < x; y++)
-	{
-		L += 0.0005f;
-		setlinecolor(HSLtoRGB(H, S, L));
-		line(0, y, x, y);
-	}
-}
-/*---------------------------------------*/
-//封装账户信息
-typedef struct User
-{
-	long ID;
-	long code;
-	float money;
-}*Puser;
-struct User user[20];
-struct User* puser;
-int x = 0;
-long user_ID;
-int user_code;
-//读取txt文本信息
-void read_txt()
-{
-	FILE* fp;
-	fp = fopen("数据/user.txt", "r");
-	while (!feof(fp))
-	{
-		fscanf(fp, "%ld\n", &user[x].ID);
-		fscanf(fp, "%d\n", &user[x].code);
-		fscanf(fp, "%f\n", &user[x].money);
-		x++;
-	}
-	fclose(fp);
-}
-/*-------------------------------------------*/
-//保存信息
-void Save_user()
-{
-	FILE* fp = fopen("数据/user.txt", "w");
-	for (int i = 0; i < x; i++)
-	{
-		fprintf(fp, "%ld\n", user[i].ID);
-		fprintf(fp, "%ld\n", user[i].code);
-		fprintf(fp, "%f\n", user[i].money);
-	}
-	fclose(fp);
-}
-//登录界面
-//封装文本框
-typedef struct Fill
-{
-	int x;
-	int y;
-	int xx;
-	int yy;
-	COLORREF color;
-	char* content;
-}FILL, *LPFILL;
-//初始化文本框
-LPFILL initfill(int x, int y, int xx, int yy, const char* content, COLORREF color)
-{
-	LPFILL fill = (LPFILL)malloc(sizeof(FILL));
-	fill->x = x;
-	fill->y = y;
-	fill->xx = xx;
-	fill->yy = yy;
-	fill->content = (char*)malloc(sizeof(content) + 1);
-	strcpy(fill->content, content);
-	fill->color = color;
-	return fill;
-}
-//绘制文本框
-void drawfill(LPFILL fill)
-{
-	setlinecolor(fill->color);//框线颜色
-	setfillcolor(fill->color);//填充颜色
-	fillroundrect(fill->x, fill->y, fill->xx, fill->yy, 10, 10);
-	setbkmode(TRANSPARENT);//输出背景模式，透明模式
-	settextcolor(BLUE);//字体颜色 ，蓝色
-	settextstyle(30, 0, "楷体");
-	outtextxy(fill->x+10, fill->y+10, fill->content);
-}
-//绘制界面
-LPFILL Text1 = initfill(100, 100, 180, 150, "账号", RGB(202,228,255));
-LPFILL Text2 = initfill(100, 160, 180, 210, "密码", RGB(202, 228, 255));
-LPFILL Text3 = initfill(200, 100, 400, 150, " ", RGB(202, 228, 255));
-LPFILL Text4 = initfill(200, 160, 400, 210, " ", RGB(202, 228, 255));
-LPFILL Text5 = initfill(120, 220, 380, 270, " ", RGB(202, 228, 255));
-//判断鼠标是否在文本框上
-int judge_mouse(ExMessage mm, LPFILL fill)
-{
-	if (mm.x >= fill->x && mm.x <= fill->xx && mm.y >= fill->y && mm.y < fill->yy)
+	int m;
+	scanf("%d",&m);
+	getchar();
+	if (m)
 	{
 		return 1;
-	}
-	return 0;
-}
-//判断鼠标是否在文本框内点击
-int mouse_function(ExMessage mm, LPFILL fill)
-{
-	if (judge_mouse(mm, fill))
-	{
-		fill->color = RGB(162, 224, 255);
-		if (mm.message == WM_LBUTTONDOWN)
-			return 1;
 	}
 	else
 	{
-		fill->color = RGB(202, 228, 255);
+		return 0;
 	}
-	return 0;
-}
-//判断当前操作区域
-//账号：操作区域1；
-//密码：操作区域2；
-//空白：操作区域3；
-int area = 3;
-void Clear_cache()
-{
-	char ch;
-	while (_kbhit())
-		ch = _getch();
-}
-void Operating_area(ExMessage mm)
-{
-	if (mouse_function(mm, Text3))
-	{
-		area = 1;
-		Clear_cache();
-	}
-	if (mouse_function(mm, Text4))
-	{
-		area = 2;
-		Clear_cache();
-	}
-	if (mouse_function(mm, Text5))
-	{
-		area = 4;
-		Clear_cache();
-	}
-}
-//输入操作
-char content1[10]={NULL};
-char content2[7]={NULL};
-char instead[8] = { NULL };
-char chara[] = "登录";
-int conmax_1 = 10, conmax_2 = 7;
-int content1_i = 0, content2_i=0;
-int* ptent1_i = &content1_i;
-int* ptent2_i = &content2_i;
-void input_txte(int x, int y, const char* content)
-{
-	setbkmode(TRANSPARENT);//输出背景模式，透明模式
-	settextcolor(BLUE);//字体颜色 ，黑色
-	settextstyle(30, 0, "楷体");
-	outtextxy(x, y, content);
 }
 
-void draw_jiemian()
+struct Account
 {
-	Draw_background(500, 300);
-	drawfill(Text1);
-	drawfill(Text2);
-	drawfill(Text3);
-	drawfill(Text4);
-	drawfill(Text5);
-	input_txte(Text3->x + 20, Text3->y + 10, content1);
-	input_txte(Text4->x + 20, Text4->y + 10, instead);
-	input_txte(Text5->x + 95, Text5->y + 10, chara);
-}
-//判断输入的是什么
-int judge_number(char ch)
+	char name[100];
+	char username[100];
+	char password[100];
+	char idCard[100];
+	char phone[100];
+	float money;
+
+	struct Account *next;
+};
+
+typedef struct Account Account;
+
+Account *head = NULL;
+Account *tail = NULL;
+
+void getpasswd(Account* pa)
 {
-	if (ch <= '9' && ch >= '0' || ch == '.')
-		return 1;
-	if (ch == 8)
-		return 2;
-	return 3;
-}
-//创建裁剪区
-void Cutting_area(int x, int y, int xx, int yy)
-{
-	HRGN rgn = CreateRectRgn(x, y, xx, yy);
-	setcliprgn(rgn);
-	clearcliprgn();
-}
-void input_number(char* content, int* content_i, LPFILL Text, int conmax)
-{
-	char ch;
-	while (_kbhit())
+	
+
+	char c;
+	int i = 0;
+	while ((c = getch())!= '\r')
 	{
-		ch = _getch();
-		switch (judge_number(ch))
-		{
-		case 1:
-			if (*content_i < conmax)
-			{
-				content[*content_i] = ch;
-				*content_i += 1;
-			}
-			break;
-		case 2:
-			if (*content_i > 0)
-			{
-				content[*content_i] = NULL;
-				*content_i -= 1;
-				content[*content_i] = NULL;
-			}
-			break;
-		default:
-			content[*content_i] = NULL;
-			break;
-		}
+		pa->password[i] = c;
+		putchar('*');
+		i++;
+		
+	}
+	pa->password[i]='\0';
+	return;
+
+}
+
+void addNode(Account *node)
+{
+	node->next = NULL;
+	if (head == NULL)
+	{
+		head = node;
+		tail = node;
+	}
+	else
+	{
+		tail->next = node;
+		tail = node;
 	}
 }
-void input_Code(char* content, int* content_i, LPFILL Text, int conmax, char* code)
+
+//查询 
+struct TransactionRecord
 {
-	char ch;
-	while (_kbhit())
+	char username[100];
+	time_t timestamp;
+	char type[20];
+	float amount;
+	float money;
+
+	struct TransactionRecord * next;
+};
+typedef struct TransactionRecord TR;
+
+TR * trHead = NULL;
+TR * trTail = NULL;
+
+void addNodeTR(TR *oNode) 
+{
+	oNode->next = NULL;
+	if (trHead == NULL)
 	{
-		ch = _getch();
-		switch (judge_number(ch))
-		{
-		case 1:
-			if (*content_i < conmax)
-			{
-				content[*content_i] = ch;
-				code[*content_i] = '*';
-				*content_i += 1;
-			}
-			break;
-		case 2:
-			if (*content_i > 0)
-			{
-				content[*content_i] = NULL;
-				code[*content_i] = NULL;
-				*content_i -= 1;
-				content[*content_i] = NULL;
-				code[*content_i] = NULL;
-			}
-			break;
-		default:
-			content[*content_i] = NULL;
-			code[*content_i] = NULL;
-			break;
-		}
+		trHead = oNode;
+		trTail = oNode;
+	}
+	else
+	{
+		trTail->next = oNode;
+		trTail = oNode;
 	}
 }
-//判断登录是否成功//信息比对
-int Login_result()
+
+//加载数据 
+int init()
 {
-	long ID = NULL;
-	long code = NULL;
-	ID = strtol(content1, NULL, 10);
-	code = strtol(content2, NULL, 10);
-	printf("id=%ld\n", ID);
-	printf("code=%d\n", code);
-	for (int i = 0; i < x; i++)
+	FILE* fp = fopen("D:\\ATM_account.txt", "r");
+	FILE* fp2=fopen("D:\\ATM_transation_record.txt", "r");
+	if ((fp == NULL)&&(fp2==NULL))
 	{
-		if (ID == user[i].ID && code == user[i].code)
-		{
-			puser = &user[i];
-			return 1;
-		}
+		return 0;
 	}
-	return 0;
-}
-//如果登录失败
-void Login_failed()
-{
-	HWND hWnd= GetHWnd();
-	MessageBox(hWnd, "账号或密码错误！！！", "登录失败", MB_OK);//弹出对话窗口
-}
-int main_login()
-{
-	initgraph(500, 300);
-	read_txt();//读取文件信息
-	while (1)
-	{
-		ExMessage mm = getmessage();
-		BeginBatchDraw();	
-		draw_jiemian();
-		Operating_area(mm);
-		switch (area)
-		{
-		case 1:
-			input_number(content1, ptent1_i, Text1, conmax_1);
-			break;
-		case 2:
-			input_Code(content2, ptent2_i, Text2, conmax_2, instead);
-			break;
-		case 4:
-			if (Login_result() == 1)
-			{
-				EndBatchDraw();
-				closegraph();
+
+	else {
+				while (!feof(fp))
+				{ 
+					Account * newNodeP = (Account *)malloc(sizeof(Account));
+					fscanf(fp, "%s %s %s %s %s %f\n", newNodeP->name, newNodeP->username, newNodeP->password, newNodeP->idCard, newNodeP->phone, &newNodeP->money);
+
+					addNode(newNodeP);
+				}
+				while (!feof(fp2))
+				{
+					TR * newNodeTr=(TR *)malloc(sizeof(TR));
+					fscanf(fp2, "%s %ld %s %f %f\n", newNodeTr->username, &newNodeTr->timestamp, newNodeTr->type, &newNodeTr->amount,&newNodeTr->money);
+
+					addNodeTR(newNodeTr);
+				}
 				return 1;
+				fclose(fp);
+				fclose(fp2);
+		}
+}
+
+
+void printLinkedList()
+{
+	Account *curP = head;
+	TR* curP1 = trHead;
+	while (curP != NULL)
+	{
+			if (A)
+			{
+				printf("姓名:%-10s账号:%-10s密码:%-10s身份证:%-25s电话:%-12s余额:%f\n"
+				, curP->name, curP->username, curP->password, curP->idCard, curP->phone, curP->money);
 			}
 			else
 			{
-				Login_failed();
-				area = 1;
+				printf("name:%-10s ID:%-10s password:%-10s identity card:%-25s phone:%-12s balance:%f\n"
+				, curP->name, curP->username, curP->password, curP->idCard, curP->phone, curP->money);
+			}
+			curP = curP->next;
+	}
+	while (curP1 != NULL)
+	{
+		if (A)
+		{
+			printf("账号：%s\t时间：%ld\t交易类型：%s\t交易金额：%f\t剩余金额：%f\n", curP1->username, curP1->timestamp, curP1->type, curP1->amount,curP1->money);
+		}
+		else
+		{
+			printf("ID：%s\t time：%ld\t trade type：%s\t transaction amount：%f\t balance：%f\n", curP1->username, curP1->timestamp, curP1->type, curP1->amount,curP1->money);
+		}
+
+		curP1 = curP1->next;
+	}
+}
+
+void exitFunction()
+{
+	FILE* fp = fopen("D:\\ATM_account.txt", "w");
+	Account * curP = head;
+	while (curP != NULL)
+	{
+		fprintf(fp, "%s\t%s\t%s\t%s\t%s\t%f\n", curP->name, curP->username, curP->password, curP->idCard, curP->phone, curP->money);
+		curP = curP->next;
+	}
+	fclose(fp);
+}
+
+void saveTransactionRecord()
+{
+	FILE* fP = fopen("D:\\ATM_transation_record.txt", "w");
+	TR* curP = trHead;
+	while (curP != NULL)
+	{
+		fprintf(fP, "%s\t%ld\t%s\t%f\t%f\n", curP->username, curP->timestamp, curP->type, curP->amount,curP->money);
+		curP = curP->next;
+	}
+	fclose(fP);
+}
+
+//开户
+void signUp()
+{
+	system("cls");
+	Account * newNodeP = (Account *)malloc(sizeof(Account));
+	newNodeP->next=NULL;
+	newNodeP->money =0.0f;
+	Account P;
+		if (A)
+		{
+			printf("请输入姓名:\n");
+			scanf("%s",newNodeP->name);
+
+			printf("请输入身份证号码:\n");
+			scanf("%s", newNodeP->idCard);
+
+			printf("请输入电话号码:\n");
+			scanf("%s", newNodeP->phone);
+			
+			printf("请输入密码:\n");
+			scanf("%s", newNodeP->password);
+			
+			char c[100];
+			printf("请再次输入您的密码：\n");
+			scanf("%s",c);
+			
+			for(int i=1;i<4;i++)
+			{
+				if(strcmp(newNodeP->password,c)!=0)
+				{
+					printf("密码错误，请您重新输入，还有%d次机会。\n",3-i);
+					printf("请再次输入您的密码：\n");
+					scanf("%s",c);
+				}
+				else
+				{
+					srand((unsigned int)time(NULL));
+					sprintf(newNodeP->username,"%d",rand()%1000000000000000+100000000000000);
+					printf("恭喜你已经成功注册账户，以下是您的账户信息：\n");
+					printf("账户：%s\n",newNodeP->username);
+					printf("姓名：%s\n",newNodeP->name);
+					printf("余额：%s\n",newNodeP->money);
+					break;
+				}
+			}
+			getchar();
+			addNode(newNodeP);	
+		}
+		else
+		{
+			printf("Please enter your name:\n");
+			scanf("%s", newNodeP->name);
+
+			printf("Please enter your ID number:\n");
+			scanf("%s", newNodeP->idCard);
+
+			printf("Please enter your telephone number:\n");
+			scanf("%s", newNodeP->phone);
+			
+			printf("Please enter your password:\n");
+			scanf("%s", newNodeP->password);
+			
+			char c[100];
+			printf("Please enter your password again：\n");
+			scanf("%s",c);
+			
+			for(int i=1;i<4;i++)
+			{
+				if(strcmp(newNodeP->password,c)!=0)
+				{
+					printf("You enter the incorrect,there are %d chance.\n",3-i);
+					printf("Please enter your password again：\n");
+					scanf("%s",c);
+				}
+				else
+				{
+					srand((unsigned int)time(NULL));
+					sprintf(newNodeP->username,"%d%",rand()%9000+1000);
+					printf("Congratulations you have successfully registered account, here is your account information:\n");
+					printf("Account：%s\n",newNodeP->username);
+					printf("name：%s\n",newNodeP->name);
+					printf("surplus：%s\n",newNodeP->money);
+					break;
+				}
+			}
+		
+			getchar();
+			addNode(newNodeP);
+			
+		}
+	}
+
+Account * curAccount=NULL;
+
+int findAccount(Account a)
+{
+	Account *curP=head;
+	while (curP!=NULL)
+	{
+		if ((strcmp(curP->username,a.username)==0)&&(strcmp(curP->password,a.password)==0))
+		{
+			curAccount = curP;
+			return 1;
+		}
+		curP=curP->next;
+	}
+	return 0;
+}
+
+//修改密码 
+void updatePassword()
+{
+		if (A)
+		{
+			printf("请输入旧密码:\n");
+			char oldPassword[100] = { '\0' };
+			scanf("%s", oldPassword);
+			if (strcmp(oldPassword, curAccount->password) == 0)
+			{
+				printf("请输入新密码：\n");
+				scanf("%s", curAccount->password);
+				printf("修改成功！\n");
+			}
+			else
+			{
+				printf("旧密码输入错误，无法修改！\n");
+			}
+		}
+		else
+		{
+			printf("Please importation of old passwords:\n");
+			char oldPassword[100] = { '\0' };
+			scanf("%s", oldPassword);
+			if (strcmp(oldPassword, curAccount->password) == 0)
+			{
+				printf("please enter new password：\n");
+				scanf("%s", curAccount->password);
+				printf("modify successfully！\n");
+			}
+			else
+			{
+				printf("The old password is incorrect and cannot be changed！\n");
+			}
+		}
+	
+}
+
+void homePage()
+{
+	system("cls");
+	updatePassword();
+}
+
+//存款 
+void saveMoney()
+{
+		float money;
+		if (A)
+		{
+			printf("请输入存钱金额：\n");
+			scanf("%f", &money);
+			getchar();
+			curAccount->money += money;
+			printf("存款成功！\n");
+		}
+		else
+		{
+			printf("Please enter the deposit amount：\n");
+			
+			scanf("%f", &money);
+			getchar();
+			curAccount->money += money;
+			printf("Deposit successfully！\n");
+		}
+	
+
+		exitFunction();
+
+		TR *newNode = (TR *)malloc(sizeof(TR));
+
+		char t[20] = { "存款/收入" };
+
+		strcpy(newNode->username, curAccount->username);
+		strcpy(newNode->type, t);        
+		newNode->amount = money;         
+		newNode->timestamp = time(NULL);
+		newNode->money=curAccount->money;
+
+		addNodeTR(newNode);
+		saveTransactionRecord();
+	
+}
+
+//取款 
+void drawMoney()
+{
+	if (A)
+	{
+		printf("请输入取款金额:\n");
+	}
+	else
+	{
+		printf("Please enter the withdrawal amount:\n");
+	}
+	
+	float money;
+	scanf("%f", &money);
+	getchar();
+
+	if (money>curAccount->money)
+	{
+		if (A)
+		{
+			printf("*****金额不足！*****\n");
+		}
+		else
+		{
+			printf("*****insufficient fund！*****\n");
+		}
+		
+	}
+	else
+	{
+		curAccount->money = curAccount->money - money;
+		if (A)
+		{
+			printf("*****取款成功！*****\n");
+		}
+		else
+		{
+			printf("*****Withdrawals success！*****\n");
+		}
+
+		exitFunction();
+
+		TR *newNode = (TR *)malloc(sizeof(TR));
+		char t[20] = { "取款/支出" };
+		strcpy(newNode->username, curAccount->username);
+		strcpy(newNode->type, t);
+		newNode->amount = money; 
+		newNode->timestamp = time(NULL);
+		newNode->money=curAccount->money;
+
+		addNodeTR(newNode);
+		saveTransactionRecord();
+		return;
+		
+	}
+}
+
+Account * findOtherAccount(char otherUsername[])
+{
+	Account * curp=head;
+	while (curp!=NULL)
+	{
+		if (strcmp(curp->username, otherUsername)==0)
+		{
+			return curp;
+		}
+		curp = curp->next;
+	}
+	return NULL;
+}
+
+//转账 
+void transfer()
+{
+	if (A)
+	{
+		printf("请输入对方账户：\n");
+	}
+	else
+	{
+		printf("Please enter your account：\n");
+	}
+	char otherUsername[100];
+	scanf("%s", otherUsername);
+	Account * otherAccont=findOtherAccount(otherUsername);
+	if (otherAccont == NULL)
+	{
+		if (A)
+		{
+			printf("该账户不合法！\n");
+		}
+		else
+		{
+			printf("Account does not exist！\n");
+		}
+	}
+	else
+	{
+		while(1)
+		{
+			if (A)
+			{
+				printf("请输入转账金额：\n");
+			}
+			else
+			{
+				printf("Please enter the transfer amount：\n");
+			}
+			
+			int money;
+			scanf("%d", &money);
+			getchar();
+
+			if(money>curAccount->money)
+			{
+				if (A)
+				{
+				printf("余额不足！\n");
+				}
+				else
+				{
+				printf("The current account balance is insufficient！\n");
+				}
+				getch();
+			}
+			else
+			{
+				curAccount->money = curAccount->money - money;
+				otherAccont->money = otherAccont->money + money;
+
+
+				if (A)
+				{
+					printf("转账成功！\n");
+				}
+				else
+				{
+					printf("Transfer success！\n");
+				}
+				exitFunction();
+				TR *newNode = (TR *)malloc(sizeof(TR));
+				char t[20] = { "转账/转入" };
+				strcpy(newNode->username, curAccount->username);
+				strcpy(newNode->type, t);
+				newNode->amount = money;
+				newNode->timestamp = time(NULL);
+				newNode->money = curAccount->money;
+
+				addNodeTR(newNode);
+
+				TR *newNode1 = (TR *)malloc(sizeof(TR));
+				char other[20] = { "转账/转出" };
+
+				strcpy(newNode1->username, otherAccont->username);
+				strcpy(newNode1->type, other);
+				newNode1->amount = money;
+				newNode1->timestamp = time(NULL);
+				newNode1->money = otherAccont->money;
+
+				addNodeTR(newNode1);
+				saveTransactionRecord();
 				break;
 			}
-		default:
-			break;
 		}
-		EndBatchDraw();
 	}
 }
 
+//登录
+void signIn() 
+{
+	for (int i = 0; i<3;i++)
+	{
 
-
-//创建主菜单按钮
-//封装按钮
-typedef struct
-{
-	int x;
-	int y;
-	int xx;
-	int yy;
-	COLORREF Fill_color;
-	COLORREF Text_color;
-	char* content;
-}Button, *PButton;
-//初始化按钮
-PButton initbutton(int x, int y, int xx, int yy, const char* content, COLORREF Fill_color,COLORREF Text_color)
-{
-	PButton button = (PButton)malloc(sizeof(Button));
-	button->x = x;
-	button->y = y;
-	button->xx = xx;
-	button->yy = yy;
-	button->content = (char*)malloc(sizeof(content) + 1);
-	strcpy(button->content, content);
-	button->Fill_color = Fill_color;
-	button->Text_color = Text_color;
-	return button;
-}
-//绘制按钮
-void drawbutton(PButton button)
-{
-	setlinecolor(BLUE);//框线颜2色
-	setfillcolor(button->Fill_color);//填充颜色
-	fillrectangle(button->x, button->y, button->xx, button->yy);
-	setbkmode(TRANSPARENT);//输出背景模式，透明模式
-	settextcolor(button->Text_color);//字体颜色 ，黑色
-	settextstyle(45, 0, "楷体");
-	outtextxy(button->x + 35, button->y + 15, button->content);
-}
-//贴主菜单界面按钮
-PButton button_inquire = initbutton(0, 100, 160, 170, "查询", WHITE, BLUE);
-PButton button_transfer = initbutton(0, 200, 160, 270, "转账", WHITE, BLUE);
-PButton button_To_close = initbutton(0, 300, 160, 370, "改密", WHITE, BLUE);
-PButton button_withdrawal = initbutton(640, 100, 800, 170, "取款", WHITE, BLUE);
-PButton button_deposit = initbutton(640, 200, 800, 270, "存款", WHITE, BLUE);
-PButton button_quit = initbutton(640, 300, 800, 370, "退出", WHITE, BLUE);
-PButton go_back = initbutton(640, 400, 800, 470, "返回", WHITE, BLUE);
-PButton determine_button= initbutton(640, 300, 800, 370, "确定", WHITE, BLUE);
-void DrawMenu_button()
-{
-	drawbutton(button_inquire);
-	drawbutton(button_transfer);
-	drawbutton(button_To_close);
-	drawbutton(button_withdrawal);
-	drawbutton(button_deposit);
-	drawbutton(button_quit);
-}
-int inbutton(ExMessage mm, PButton button)
-{
-	if (mm.x >= button->x && mm.x <= button->xx && mm.y >= button->y && mm.y < button->yy)
-	{
-		return 1;
-	}
-	return 0;
-}
-//判断鼠标是否点击按钮
-int Click_button(ExMessage mm, PButton button)
-{
-	if (inbutton(mm, button))
-	{
-		button->Fill_color = RGB(244, 244, 244);
-		if (mm.message == WM_LBUTTONDOWN)
-			return 1;
-	}
-	else
-	{
-		button->Fill_color = WHITE;
-	}
-	return 0;
-}
-//判断鼠标点击的按钮
-int option = 0;
-void Choose_button(ExMessage mm)
-{
-	if (Click_button(mm, button_inquire))
-	{
-		option = 1;
-	}
-	if (Click_button(mm, button_transfer))
-	{
-		option = 2;
-	}
-	if (Click_button(mm, button_To_close))
-	{
-		option = 3;
-	}
-	if (Click_button(mm, button_withdrawal))
-	{
-		option = 4;
-	}
-	if (Click_button(mm, button_deposit))
-	{
-		option = 5;
-	}
-	if (Click_button(mm, button_quit))
-	{
-		option = 6;
-	}
-}
-
-/*------------------------------------*/
-//查询界面
-void interface_inquire(Puser user)
-{
-	char *temp;
-	int decpt, sign;
-	temp = _fcvt(user->money, 2, &decpt, &sign);
-	char point = '.';
-	if (decpt > 0)
-	{
-		for (int i = decpt + 3; i > decpt; i--)
+		Account a;
+		if (A)
 		{
-			temp[i] = temp[i - 1];
-		}
-		temp[decpt] = '.';
-	}
-	setlinecolor(BLUE);//框线颜2色
-	setfillcolor(WHITE);//填充颜色
-	fillroundrect(80, 100, 550, 400, 10, 10);
-	setbkmode(TRANSPARENT);//输出背景模式，透明模式
-	settextcolor(BLUE);//字体颜色 ，黑色
-	settextstyle(30, 0, "楷体");
-	outtextxy(110+25*5, 100 + 40, temp);
-	outtextxy(80+20, 100+40, "账户余额：");
-}
+			printf("\n*****欢迎登录*****\n\n");
+			printf("请输入账号：\n");
+			scanf("%s", a.username);
+			getchar();
 
-/*----------------------*/
-//转账界面
-//输入操作
-LPFILL grid_1 = initfill(200, 100, 600, 150, " ", WHITE);
-LPFILL grid_2 = initfill(200, 200, 600, 250, " ", WHITE);
-char goal_user[10] = { NULL };
-char transfer_money[10] = { NULL };
-int goalmax = 10, moneymax = 10;
-int goal_user_i = 0, transfer_money_i = 0;
-int* Pgoal_user_i = &goal_user_i;
-int* Ptransfer_money_i = &transfer_money_i;
-void interface_transfer(Puser user)
-{
-	if (goal_user_i == 0)
-	{
-		strcpy(grid_1->content, "      请输入目标账户");
-	}
-	else
-	{
-		strcpy(grid_1->content, " ");
-	}
-	if (transfer_money_i == 0)
-	{
-		strcpy(grid_2->content, "      请输入转账金额");
-	}
-	else
-	{
-		strcpy(grid_2->content, " ");
-	}
-	drawfill(grid_1);
-	drawfill(grid_2);
-	setbkmode(TRANSPARENT);//输出背景模式，透明模式
-	settextcolor(BLUE);//字体颜色 ，黑色
-	settextstyle(30, 0, "楷体");
-	outtextxy(300, 100 + 10, goal_user);
-	outtextxy(300, 200 + 10, transfer_money);
-}
-int area_2 = 1;
-void transfer_area(ExMessage mm)
-{	
-	if (mouse_function(mm, grid_1))
-	{
-		area_2 = 1;
-		Clear_cache();
-	}
-	if (mouse_function(mm, grid_2))
-	{
-		area_2 = 2;
-		Clear_cache();
-	}
-}
-//找到目标账户 
-Puser target_user;
-int contrast_id()
-{
-	long ID = NULL;
-	long code = NULL;
-	ID = strtol(goal_user, NULL, 10);
-	for (int i = 0; i < x; i++)
-	{
-		if (ID == user[i].ID)
+			printf("请输入密码：\n");
+		}
+		else
 		{
-			target_user = &user[i];
-			return 1;
+			printf("\n*****Welcome to Log on*****\n");
+			printf("Please enter mail account username：\n");
+			scanf("%s", a.username);
+			getchar();
+
+			printf("enter your PIN：\n");
 		}
+		getpasswd(&a);
+		while (1)
+		{
+			if (findAccount(a))
+			{
+				if (A)
+				{
+					printf("\n\n******登录成功！******\n\n");
+					printf("*****1、修改密码*****\n");
+					printf("*****2、需要取款*****\n");
+					printf("*****3、需要存款*****\n");
+					printf("*****4、需要转账*****\n");
+					printf("*****5、退出登录*****\n");
+					printf("请选择你需要的功能：->");
+				}
+				else
+				{
+					printf("\n\n***********succeed！***********\n");
+					printf("*****1、change password******\n");
+					printf("*****2、Need to withdraw money*****\n");
+					printf("*****3、liquid funds*****\n");
+					printf("*****4、Need to transfer*****\n");
+					printf("*****5、Logout*****\n\n");
+					printf("Please select the feature you want:->");
+				}
+				
+				int iIint;
+				scanf("%d", &iIint);
+				getchar();
+				if (iIint == 1)
+				{
+					homePage();
+				}
+				else if (iIint == 2)
+				{
+					system("cls"); 
+					drawMoney();
+				}
+				else if (iIint == 3)
+				{
+					system("cls"); 
+					saveMoney();
+				}
+				else if (iIint == 4)
+				{
+					system("cls"); 
+					transfer();
+				}
+				else if (iIint == 5)
+				{
+					system("cls"); 
+					return;
+				}
+			}
+			else
+			{
+				if (A)
+				{
+					printf("*****登录失败!*****\n");
+				}
+				else
+				{
+					printf("*****Logon failed!*****\n");
+				}
+				break;
+			}
+		}
+		
 	}
-	return 0;
+
 }
 
 
-
-/*-------------------------*/
-//账户改密码
-char code_one[7] = { NULL };
-char code_two[7] = { NULL };
-char instead_1[7];
-char instead_2[7];
-int code_onemax = 7, code_twomax = 7;
-int code_two_i = 0, code_one_i = 0;
-int* Pcode_two_i = &code_two_i;
-int* Pcode_one_i = &code_one_i;
-void turn_code(Puser user)
-{
-	if (code_one_i == 0)
-	{
-		strcpy(grid_1->content, "         输入密码");
-	}
-	else
-	{
-		strcpy(grid_1->content, " ");
-	}
-	if (code_two_i == 0)
-	{
-		strcpy(grid_2->content, "       再次输入密码");
-	}
-	else
-	{
-		strcpy(grid_2->content, " ");
-	}
-	drawfill(grid_1);
-	drawfill(grid_2);
-	setbkmode(TRANSPARENT);//输出背景模式，透明模式
-	settextcolor(BLUE);//字体颜色 ，黑色
-	settextstyle(30, 0, "楷体");
-	outtextxy(350, 100 + 10, instead_1);
-	outtextxy(350, 200 + 10, instead_2);
-}
-int area_3 = 1;
-void transfer_area_3(ExMessage mm)
-{
-	if (mouse_function(mm, grid_1))
-	{
-		area_3 = 1;
-		Clear_cache();
-	}
-	if (mouse_function(mm, grid_2))
-	{
-		area_3 = 2;
-		Clear_cache();
-	}
-}
-
-
-/*------------------------------------------*/
-//取款
-PButton figure1 = initbutton(0, 100, 160, 170, "100", WHITE, BLUE);
-PButton figure2 = initbutton(0, 200, 160, 270, "200", WHITE, BLUE);
-PButton figure3 = initbutton(0, 300, 160, 370, "500", WHITE, BLUE);
-PButton figure4 = initbutton(640, 100, 800, 170, "1000", WHITE, BLUE);
-PButton figure5 = initbutton(640, 200, 800, 270, "2000", WHITE, BLUE);
-PButton figure6 = initbutton(640, 300, 800, 370, "5000", WHITE, BLUE);
-//取款金额界面
-void draw_figure()
-{
-	drawbutton(figure1);
-	drawbutton(figure2);
-	drawbutton(figure3);
-	drawbutton(figure4);
-	drawbutton(figure5);
-	drawbutton(figure6);
-}
-int withdrawals_lines(ExMessage mm)
-{
-	if (Click_button(mm, figure1))
-	{
-		return 1;
-	}
-	if (Click_button(mm, figure2))
-	{
-		return 2;
-	}
-	if (Click_button(mm, figure3))
-	{
-		return 3;
-	}
-	if (Click_button(mm, figure4))
-	{
-		return 4;
-	}
-	if (Click_button(mm, figure5))
-	{
-		return 5;
-	}
-	if (Click_button(mm, figure6))
-	{
-		return 6;
-	}
-}
-
-
-/*-------------------------------------- */
-//存款
-char deposit_figure[10] = { NULL };
-int figuremax = 10;
-int figuremax_i = 0;
-int* Pfiguremax_i = &figuremax_i;
-void deposit_transfer(Puser user)
-{
-	if (figuremax_i == 0)
-	{
-		strcpy(grid_1->content, "      请输入存入金额");
-	}
-	else
-	{
-		strcpy(grid_1->content, " ");
-	}
-	drawfill(grid_1);
-	setbkmode(TRANSPARENT);//输出背景模式，透明模式
-	settextcolor(BLUE);//字体颜色 ，黑色
-	settextstyle(30, 0, "楷体");
-	outtextxy(300, 100 + 10, deposit_figure);
-}
-int area_4 = 1;
-void transfer_area_4(ExMessage mm)
-{
-	if (mouse_function(mm, grid_1))
-	{
-		area_4 = 1;
-		Clear_cache();
-	}
-}
 int main()
 {
-	main_login();
-	initgraph(800, 500);
-	while (1)
+	printf("*****请选择语言				/Please select language ：*****\n");
+	printf("*****选择中文按1			/Select Chinese press 1*****\n");
+	printf("*****选择英文按2			/Select English press 2*****\n");
+	A=language();
+	int q = init();
+	system("cls");
+	if (A)
 	{
-		ExMessage mm = getmessage();
-		HWND hwnd = GetHWnd();
-		switch (option)
+		if (q == 0)
 		{
-		case 1://查询
-			BeginBatchDraw();
-			cleardevice();
-			Draw_background(800, 500);
-			interface_inquire(puser);
-			drawbutton(go_back);
-			if (Click_button(mm, go_back))
-			{
-				option = 7;
-			}
-			EndBatchDraw();
-			break;
-		case 2://转账
-			while (1)
-			{
-				ExMessage mm = getmessage();
-				BeginBatchDraw();
-				Draw_background(800, 500);
-				interface_transfer(user);
-				transfer_area(mm);
-				switch (area_2)
-				{
-				case 1:
-					input_number(goal_user, Pgoal_user_i, grid_1, goalmax);
-					break;
-				case 2:
-					input_number(transfer_money, Ptransfer_money_i, grid_2, moneymax);
-					break;
-				default:
-					break;
-				}
-				drawbutton(determine_button);
-				if (Click_button(mm, determine_button))
-				{
-					if (contrast_id() == 1)
-					{
-						if (target_user->ID != puser->ID)
-						{
-							float money = 0;
-							money = atof(transfer_money);
-							if (puser->money >= money)
-							{
-								puser->money -= money;
-								target_user->money += money;
-								Save_user();
-								HWND hWnd = GetHWnd();
-								MessageBox(hWnd, "转账成功", " ", MB_OK);//弹出对话窗口
-								option = 7;
-								goal_user_i = 0;
-								transfer_money_i = 0;
-								for (int i = 0; i < goalmax; i++)
-								{
-									goal_user[i] = NULL;
-								}
-								for (int i = 0; i < moneymax; i++)
-								{
-									transfer_money[i] = NULL;
-								}
-								EndBatchDraw();
-								break;
-							}
-							else
-							{
-								HWND hWnd = GetHWnd();
-								MessageBox(hWnd, "余额不足！", " ", MB_OK);//弹出对话窗口
-							}
-						}
-						else
-						{
-							HWND hWnd = GetHWnd();
-							MessageBox(hWnd, "不能向自己转账！", " ", MB_OK);//弹出对话窗口
-						}
-					}
-					else
-					{
-						HWND hWnd = GetHWnd();
-						MessageBox(hWnd, "未找到目标用户！", " ", MB_OK);//弹出对话窗口
-					}
-				}
-				drawbutton(go_back);
-				if (Click_button(mm, go_back))
-				{
-					option = 7;
-					goal_user_i = 0;
-					transfer_money_i = 0;
-					for (int i = 0; i < goalmax; i++)
-					{
-						goal_user[i] = NULL;
-					}
-					for (int i = 0; i < moneymax; i++)
-					{
-						transfer_money[i] = NULL;
-					}
-					EndBatchDraw();
-					break;
-				}
-				EndBatchDraw();
-			}
-			break;
-		case 3://改密
-			while (1)
-			{
-				ExMessage mm = getmessage();
-				BeginBatchDraw();
-				Draw_background(800, 500);
-				turn_code(user);
-				transfer_area_3(mm);
-				switch (area_3)
-				{
-				case 1:
-					input_Code(code_one, Pcode_one_i, grid_1, code_onemax, instead_1);
-					break;
-				case 2:
-					input_Code(code_two, Pcode_two_i, grid_2, code_twomax, instead_2);
-					break;
-				}
-				drawbutton(determine_button);
-				if (Click_button(mm, determine_button))
-				{
-					long code_1 = strtol(code_one, NULL, 10);
-					long code_2 = strtol(code_two, NULL, 10);
-					if (code_1 == code_2)
-					{
-						puser->code = code_2;
-						Save_user();
-						HWND hWnd = GetHWnd();
-						MessageBox(hWnd, "密码修改成功！", " ", MB_OK);//弹出对话窗口
-						option = 7;
-						code_two_i = 0;
-						code_one_i = 0;
-						for (int i = 0; i < code_onemax; i++)
-						{
-							code_one[i] = NULL;
-							instead_1[i] = NULL;
-						}
-						for (int i = 0; i < code_twomax; i++)
-						{
-							code_two[i] = NULL;
-							instead_2[i] = NULL;
-						}
-						EndBatchDraw();
-						break;
-					}
-					else
-					{
-						HWND hWnd = GetHWnd();
-						MessageBox(hWnd, "密码修改失败！", " ", MB_OK);//弹出对话窗口
-					}
-				}
-				drawbutton(go_back);
-				if (Click_button(mm, go_back))
-				{
-					option = 7;
-					code_two_i = 0;
-					code_one_i = 0;
-					for (int i = 0; i < code_onemax; i++)
-					{
-						code_one[i] = NULL;
-						instead_1[i] = NULL;
-					}
-					for (int i = 0; i < code_twomax; i++)
-					{
-						code_two[i] = NULL;
-						instead_2[i] = NULL;
-					}
-					EndBatchDraw();
-					break;
-				}
-				EndBatchDraw();
-			}
-			break;
-		case 4://取款
-			float money;
-			int x;
-			while (1)
-			{
-				ExMessage mm = getmessage();
-				BeginBatchDraw();
-				cleardevice();
-				Draw_background(800, 500);
-				draw_figure();
-				money = puser->money;
-				x = 1;
-				switch (withdrawals_lines(mm))
-				{
-				case 1:
-					money -= 100;
-					x *= -1;
-					break;
-				case 2:
-					money -= 200;
-					x *= -1;
-					break;
-				case 3:
-					money -= 500;
-					x *= -1;
-					break;
-				case 4:
-					money -= 1000 ;
-					x *= -1;
-					break;
-				case 5:
-					money -= 2000;
-					x *= -1;
-					break;
-				case 6:
-					money -= 5000;
-					x *= -1;
-					break;
-				default:
-					break;
-				}
-				if (x != 1)
-				{
-					if (money < 0)
-					{
-						HWND hWnd = GetHWnd();
-						MessageBox(hWnd, "余额不足！", " ", MB_OK);//弹出对话窗口
-					}
-					else
-					{
-						puser->money = money;
-						Save_user();
-						HWND hWnd = GetHWnd();
-						MessageBox(hWnd, "取款成功！", " ", MB_OK);//弹出对话窗口
-						option = 7;
-						EndBatchDraw();
-						break;
-					}
-				}
-				EndBatchDraw();
-			}
-			break;
-		case 5://存款
-			while (1)
-			{
-				ExMessage mm = getmessage();
-				BeginBatchDraw();
-				Draw_background(800, 500);
-				deposit_transfer(user);
-				transfer_area_4(mm);
-				switch (area_4)
-				{
-				case 1:
-					input_number(deposit_figure, Pfiguremax_i, grid_1, figuremax);
-					break;
-				default:
-					break;
-				}
-				drawbutton(determine_button);
-				if (Click_button(mm, determine_button))
-				{
-					float money_2 = 0;
-					money_2 = atof(deposit_figure);
-					puser->money += money_2;
-					Save_user();
-					HWND hWnd = GetHWnd();
-					MessageBox(hWnd, "存款成功！", " ", MB_OK);//弹出对话窗口
-					option = 7;
-					figuremax_i = 0;
-					for (int i = 0; i < figuremax; i++)
-					{
-						deposit_figure[i] = NULL;
-					}
-					EndBatchDraw();
-					break;
-				}
-				drawbutton(go_back);
-				if (Click_button(mm, go_back))
-				{
-					option = 7;
-					figuremax_i = 0;
-					for (int i = 0; i < figuremax; i++)
-					{
-						deposit_figure[i] = NULL;
-					}
-					EndBatchDraw();
-					break;
-				}
-				EndBatchDraw();
-			}
-			break;
-		case 6://退出
-			MessageBox(hwnd, "谢谢使用！", " ", MB_OK);//弹出对话窗口
-			return 0;
-		default:
-			BeginBatchDraw();
-			cleardevice();
-			Draw_background(800, 500);
-			DrawMenu_button();
-			Choose_button(mm);
-			EndBatchDraw();
-			break;
+			printf("*****加载失败！*****\n");
+		}
+		else
+		{
+			printf("*****加载成功！*****\n");
 		}
 	}
+	else
+	{
+		if (q == 0)
+		{
+			printf("*****Load Fail！*****\n");
+		}
+		else
+		{
+			printf("*****onload Function！*****\n");
+		}
+	}
+	char c;
+	while (1)
+	{
+		if (A)
+		{
+			printf("*****1、开户*****\n");
+			printf("*****2、登录*****\n");
+			printf("*****3、退出*****\n");
+		}
+		else
+		{
+			printf("*****1、sign up*****\n");
+			printf("*****2、sign in*****\n");
+			printf("*****3、exit*****\n");
+		}
+		c=getch();
+		system("cls");
+		switch (c)
+		{
+			case '1':signUp(); break;
+			case '2':signIn(); break;
+			case '3':
+			{
+				printLinkedList();
+				saveTransactionRecord();
+				exitFunction();
+				exit(NULL);
+			}
+		}
+	}
+
+	return 0;
 }
